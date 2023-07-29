@@ -8,6 +8,12 @@ This repository contains the codes for the IROS 2023 paper "Panoptic Mapping wit
   <img src="https://user-images.githubusercontent.com/34207278/256343660-51b38d98-03ff-423d-8ab9-f6809b3529b2.png" width="100%" />
 </p>
 
+----
+
+Panoptic Mapping | Fruit Completion |
+:-: | :-: |
+<video src='https://github.com/PRBonn/HortiMapping/assets/34207278/9c39c1f6-30af-4da7-bfe1-eb51ff2b339c'> | <video src='https://github.com/PRBonn/HortiMapping/assets/34207278/10714f5a-7d1d-4de4-9528-c9150ca0c9a3'> |
+
 
 ----
 ## Abstract
