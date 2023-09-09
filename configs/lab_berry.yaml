@@ -1,0 +1,73 @@
+run_name: lab_strawberry
+
+# data path:
+deepsdf_dir: './deepsdf/models/strawberry_32' 
+
+data_dir: 'xxx/processed/Strawberry'
+
+fruit_id: none # if none, we will use the testset in split
+
+split: 'xxx/processed/Strawberry/split.json'
+
+baseline_name: none # none means use our own method # select from CoRe, DeepSDF, CPD, PFSGD, SEFit
+
+# processing range (not used)
+begin_submap: 0
+begin_frame: 0
+end_frame: 2000
+every_frame: 1
+
+# used for lab pepper experiment
+frame_per_fruit: 50   # 50 for the final result
+
+device: cuda
+
+opt: # joint pose and shape optimization for the crops
+  scale_on: true     # estimate scale (sim3) or not (se3)
+  lm:                # levenberg-marquardt optimization related
+    lm_on: true      # levenberg-marquardt optimization instead of gauss-newton
+    lm_eye: false    # use identity damping matrix or not
+    lm_lambda_0: 1.0 # lm initial damping factor lambda, the larger, more tend to be stable but converging slowly
+    s_damp: 0     # additional damping for the scale estimation (1e-3), the larger, more tend to not change the scale, 1e-3
+  pose_init:         # pose initial guess
+    rot_on: false     
+    scale_on: false
+  recon:
+    n_pts: 2000      # the number of the point sampled from the object's mesh (before cleaning)
+    cluster_dist_m: 0.008 # the distance for filtering isolated clusters (the noise) from the object
+    robust_th_m: 0.003 # robust kernel threshold
+  render:            # rendering loss related
+    n_fg_pix: 400    # count of the sampled foreground pixels
+    n_bg_pix: 200    # count of the sampled background pixels
+    n_bg_pad: 30     # padding of the background bounding box from the foreground bounding box on each side
+    n_frame: 10       # max count of the image frame used for calculating the rendering loss
+    n_sample_on_ray: 15 # count of the sampled points on each rendering ray, 20
+    log_sdf_occ: true  # use the logistic function for sdf to occ. prob. convertion (or just a linear convertion)
+    occ_cutoff_m: 0.005  # cut-off threshold for converting between the sdf and occupancy probability 
+    occlusion_on: false  # occlusion aware rendering loss (do not take the potential occludded area in to account)
+    robust_th_m: 0.02 # robust kernel threshold
+  weight:
+    w_recon: 1.0    # weight for the deepsdf reconstruction loss
+    w_depth: 5e-2 # 5e-2   # weight for the depth rendering loss
+    w_mask: 1e-4 # 5e-4      # weight for the mask rendering loss
+    w_codereg: 1e-4 # larger would cause the pose more stable, but smaller would lead to more variance on the shape
+  converge:
+    max_iter: 50    # max iteration number 
+    epsilon_g: 1e-4 # convergence tolerance for gradient
+    epsilon_c: 1e-2 # convergence tolerance for shape latent code' change rate
+    epsilon_t: 1e-3 # convergence tolerance for pose parameters (translation, m)
+    epsilon_r: 1e-0 # convergence tolerance for pose parameters (rotation, degree)
+    epsilon_s: 1e-3 # convergence tolerance for pose parameters (scale, %)
+  robust_iter: 100 # begin to use the robust loss from this iteration
+
+vis:
+  wandb_log_on: true
+  vis_on: true
+  vis_pause_s: 0.0
+  object_radius_max_m: 0.04
+  mc_res_mm: 1.0
+  render_view: true
+  rot_img: true # for 720 * 1280 images
+  show_pix_sample: false
+
+  

@@ -1,0 +1,1 @@
+from deepsdf.networks.deep_sdf_decoder import *
