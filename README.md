@@ -2,7 +2,7 @@
 
 This repository contains the codes for the IROS 2023 paper "Panoptic Mapping with Fruit Completion and Pose Estimation for Horticultural Robots". 
 
-[**video**]() | [**paper**](https://www.ipb.uni-bonn.de/wp-content/papercite-data/pdf/pan2023iros.pdf)
+[**video**](https://youtu.be/fSyHBhskjqA?si=01ff9t4c4qVzRdmL) | [**paper**](https://www.ipb.uni-bonn.de/wp-content/papercite-data/pdf/pan2023iros.pdf)
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/34207278/256343660-51b38d98-03ff-423d-8ab9-f6809b3529b2.png" width="100%" />
@@ -34,5 +34,4 @@ If you use the repository for any academic work, please cite our paper.
   year={2023}
 }
 ```
-
 
