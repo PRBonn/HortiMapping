@@ -23,7 +23,7 @@ from wild_completion.optimizer import Optimizer
 
 from deepsdf.deep_sdf.workspace import config_decoder, load_latent_vectors
 
-from opt_visualizer import OptVisualizer, color_table
+from wild_completion.opt_visualizer import OptVisualizer, color_table
 
 
 @click.command()

@@ -1,0 +1,42 @@
+{
+  "Description" :  "Strawberry Augment 1 With Mesh Combined Samples Deepsdf Pretrain latent=32",
+  "DataSource" : "/media/yuepan/DATA/1_data/CKA/fruit_model/processed",
+  "TrainSplit" : "./deepsdf/experiments/splits/train_strawberry_aug_mesh_1.json",
+  "TestSplit" : "./deepsdf/experiments/splits/strawberry_test.json",
+  "NetworkArch" : "deep_sdf_decoder",
+  "NetworkSpecs" : {
+    "dims" : [ 512, 512, 512, 512, 512, 512, 512, 512 ],
+    "dropout" : [0, 1, 2, 3, 4, 5, 6, 7],
+    "dropout_prob" : 0.2,
+    "norm_layers" : [0, 1, 2, 3, 4, 5, 6, 7],
+    "latent_in" : [4],
+    "xyz_in_all" : false,
+    "use_tanh" : false,
+    "latent_dropout" : false,
+    "weight_norm" : true
+    },
+  "CodeLength" : 32,
+  "NumEpochs" : 3001,
+  "SnapshotFrequency" : 500,
+  "AdditionalSnapshots" : [ 0, 500, 1500],
+  "LearningRateSchedule" : [
+    {
+      "Type" : "Step",
+      "Initial" : 0.0005,
+      "Interval" : 300,
+      "Factor" : 0.5
+    },
+    {
+      "Type" : "Step",
+      "Initial" : 0.001,
+      "Interval" : 300,
+      "Factor" : 0.5
+    }],
+  "SamplesPerScene" : 16384,
+  "ScenesPerBatch" : 64,
+  "DataLoaderThreads" : 16,
+  "ClampingDistance" : 0.05,
+  "CodeRegularization" : true,
+  "CodeRegularizationLambda" : 1e-4,
+  "CodeBound" : 1.0
+}
