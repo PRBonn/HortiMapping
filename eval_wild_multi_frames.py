@@ -401,7 +401,8 @@ def main(config):
             rot_error_array.append(rot_error)
             
             if cfg['vis']['vis_on']:
-                vis.add_gt_scan(gt_pcd_w)
+                if cfg['vis']['vis_gt']:
+                    vis.add_gt_scan(gt_pcd_w)
                 vis.stop()
                 vis.clean_vis()
 

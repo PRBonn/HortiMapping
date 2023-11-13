@@ -3,18 +3,16 @@ run_name: wild_sweetpepper # for general data
 # data path:
 deepsdf_dir: './deepsdf/models/sweetpepper_32' 
 
+data_dir: 'path/to/BUP20_example_data'
 
-data_dir: 'your/path'
-
-cam_info_path: 'your/path/cam_info.yaml'
-
+cam_info_path: 'path/to/BUP20_example_data/cam_info.yaml'
 baseline_name: none 
 
 # processing range
 begin_submap: 1
 begin_frame: 0
 end_frame: 2000
-every_frame: 4
+every_frame: 1
 
 device: cuda
 
@@ -66,7 +64,5 @@ vis:
   object_radius_max_m: 0.08
   mc_res_mm: 4.0
   render_view: false
-  rot_img: true # for 720 * 1280 images
+  rot_img: false # for 720 * 1280 images (for BUP20, false, others, true)
   show_pix_sample: false
-
-  

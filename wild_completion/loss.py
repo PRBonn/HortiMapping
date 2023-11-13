@@ -41,6 +41,7 @@ def compute_render_loss(decoder, latent_vector, ray_directions, depth_obs_fg, de
 
     # if too few query points, return immediately
     if query_points_obj.shape[0] < min_valid_sample:
+        # print("too few query points")
         return None
 
     # flattened

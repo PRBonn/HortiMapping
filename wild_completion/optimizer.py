@@ -135,6 +135,10 @@ class Optimizer(object):
             mask_obs_count = res_render_mask.shape[0]
             J_render_depth_t = J_render_depth.transpose(1, 2)  # N, 7+c, 1 
             J_render_mask_t = J_render_mask.transpose(1, 2)  # N, 7+c, 1 
+            
+            if depth_obs_count == 0:
+                print("This submap is not valid")
+                break
 
             t2 = get_time()
 
@@ -150,6 +154,7 @@ class Optimizer(object):
             # print("H_render_depth:")
             # print(H_render_depth)
 
+            # faster to be done in cpu ...
             H_render_mask = w_mask * torch.bmm(J_render_mask_t, J_render_mask).sum(0).squeeze() / mask_obs_count
             b_render_mask = -w_mask * torch.bmm(J_render_mask_t, res_render_mask).sum(0).squeeze() / mask_obs_count
             # print("H_render_mask:")
@@ -181,7 +186,7 @@ class Optimizer(object):
                 robust_res_recon = res_recon
                 robust_w = torch.ones_like(res_recon)
 
-            H_recon = w_recon * (robust_w*torch.bmm(J_recon_t, J_recon)).sum(0).squeeze() / recon_obs_count
+            H_recon = w_recon * (robust_w*torch.bmm(J_recon_t, J_recon)).sum(0).squeeze() / recon_obs_count #  7+c, 7+c
             b_recon = -w_recon * (robust_w*torch.bmm(J_recon_t, res_recon)).sum(0).squeeze() / recon_obs_count
             
             # print("H_recon:")
@@ -282,6 +287,7 @@ class Optimizer(object):
         # print(latent)
 
         if self.vis is not None:
+            self.vis.vis.remove_geometry(self.vis.txt, self.vis.reset_bounding_box)
             self.vis.stop()
 
         return latent, T_ow_torch, iter_count

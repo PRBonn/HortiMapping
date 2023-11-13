@@ -35,3 +35,18 @@ If you use the repository for any academic work, please cite our paper.
 }
 ```
 
+----
+## Instructions
+
+We provide an [example data sequence](https://uni-bonn.sciebo.de/s/ovg3hIXHOeHdht6) generated from the public [BUP20 sweet pepper dataset](http://agrobotics.uni-bonn.de/sweet_pepper_dataset/) using multi-resolution panoptic mapping.
+
+Then you can then test the shape completion and pose estimation using the exmaple data sequence after setting the path by:
+
+```
+python test_wild_completion.py -c ./configs/wild_pepper_bak.yaml 
+```
+
+You will then find the ```submaps_complete``` and ```submaps_pose``` folder as the results in the example data folder.
+
+----
+
