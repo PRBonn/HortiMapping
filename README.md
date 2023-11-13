@@ -48,5 +48,4 @@ python test_wild_completion.py -c ./configs/wild_pepper.yaml
 
 You will then find the ```submaps_complete``` and ```submaps_pose``` folder as the results in the example data folder.
 
-----
 
