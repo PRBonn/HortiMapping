@@ -33,7 +33,7 @@ class Metrics3D():
 
     @staticmethod
     def convert_to_pcd(geom):
-
+ 
         if isinstance(geom, o3d.geometry.Geometry):
             geom_type = geom.get_geometry_type().value
             if geom_type == MESHTYPE or geom_type == TETRATYPE:

@@ -3,11 +3,11 @@ run_name: lab_sweetpepper_deepsdf
 # data path:
 deepsdf_dir: './deepsdf/models/sweetpepper_32' 
 
-data_dir: 'xxx/processed/SweetPepper'
+data_dir: './data/igg_fruit/SweetPepper'
 
 fruit_id: none # if none, we will use the testset in split
 
-split: 'xxx/processed/SweetPepper/split.json'
+split: './data/igg_fruit/SweetPepper/split.json'
 
 baseline_name: none # none means use our own method # select from CoRe, DeepSDF, CPD, PFSGD, SEFit
 

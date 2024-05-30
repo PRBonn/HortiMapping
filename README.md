@@ -24,6 +24,64 @@ The experiments presented in this paper, evaluated both in the controlled enviro
 
 ----
 
+## Install
+
+# Installation
+
+### 1. Set up conda environment
+
+```
+conda create --name homa python=3.8
+conda activate homa
+```
+
+### 2. Install the key requirement PyTorch
+
+```
+conda install pytorch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 pytorch-cuda=11.7 -c pytorch -c nvidia 
+```
+
+The commands depend on your CUDA version. You may check the instructions [here](https://pytorch.org/get-started/previous-versions/).
+
+### 3. Install other dependency
+
+```
+pip3 install open3d==0.17 opencv-python scikit-image wandb tqdm plyfile
+```
+
+----
+## Instructions
+
+### Clone the repository
+
+```
+git clone git@github.com:PRBonn/HortiMapping.git
+cd HortiMapping
+```
+
+### Panoptic mapping
+
+For the multi-resolution panoptic mapping part, we use our previous work [Voxfield Panmap](https://github.com/VIS4ROB-lab/voxfield-panmap).
+
+### Fruit shape completion and pose estimation
+
+We provide an [example data sequence](https://uni-bonn.sciebo.de/s/ovg3hIXHOeHdht6) generated from the public [BUP20 sweet pepper dataset](http://agrobotics.uni-bonn.de/sweet_pepper_dataset/) using multi-resolution panoptic mapping.
+
+You can download this example data by:
+```
+sh scripts/download_bup_example.sh 
+```
+
+You can then test the shape completion and pose estimation using the example data sequence after setting the path by:
+
+```
+python test_wild_completion.py -c ./configs/wild_pepper.yaml 
+```
+
+You will then find the ```submaps_complete``` and ```submaps_pose``` folder as the results in the example data folder.
+
+----
+
 ## Citation
 If you use the repository for any academic work, please cite our paper.
 ```
@@ -35,17 +93,5 @@ If you use the repository for any academic work, please cite our paper.
 }
 ```
 
-----
-## Instructions
-
-We provide an [example data sequence](https://uni-bonn.sciebo.de/s/ovg3hIXHOeHdht6) generated from the public [BUP20 sweet pepper dataset](http://agrobotics.uni-bonn.de/sweet_pepper_dataset/) using multi-resolution panoptic mapping.
-
-You can then test the shape completion and pose estimation using the exmaple data sequence after setting the path by:
-
-```
-python test_wild_completion.py -c ./configs/wild_pepper.yaml 
-```
-
-You will then find the ```submaps_complete``` and ```submaps_pose``` folder as the results in the example data folder.
 
 

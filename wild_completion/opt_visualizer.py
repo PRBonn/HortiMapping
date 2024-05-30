@@ -47,9 +47,10 @@ def text_3d(text, pos, direction=None, degree=90.0, font='/usr/share/fonts/truet
         direction = (1., 0., 0.)
 
     font_obj = ImageFont.truetype(font, font_size)
-    font_dim = font_obj.getsize(text)
+    # font_dim = font_obj.getsize(text) # used before pillow v10
+    font_dim = font_obj.getbbox(text) # used after pillow v10
 
-    img = Image.new('RGB', font_dim, color=(255, 255, 255))
+    img = Image.new('RGB', font_dim[-2:], color=(255, 255, 255))
     draw = ImageDraw.Draw(img)
     draw.text((0, 0), text, font=font_obj, fill=(0, 0, 0))
     img = np.asarray(img)

@@ -3,9 +3,9 @@ run_name: wild_sweetpepper # for general data
 # data path:
 deepsdf_dir: './deepsdf/models/sweetpepper_32' 
 
-data_dir: 'path/to/BUP20_example_data'
+data_dir: './data/BUP20_example_data'
 
-cam_info_path: 'path/to/BUP20_example_data/cam_info.yaml'
+cam_info_path: './data/BUP20_example_data/cam_info.yaml'
 baseline_name: none 
 
 # processing range
