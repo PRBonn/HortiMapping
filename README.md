@@ -26,8 +26,6 @@ The experiments presented in this paper, evaluated both in the controlled enviro
 
 ## Install
 
-# Installation
-
 ### 1. Set up conda environment
 
 ```
@@ -78,7 +76,7 @@ You can then test the shape completion and pose estimation using the example dat
 python test_wild_completion.py -c ./configs/wild_pepper.yaml 
 ```
 
-You will then find the ```submaps_complete``` and ```submaps_pose``` folder as the results in the example data folder.
+You will see a visualizer showing the optimization process. You can then check the ```submaps_complete``` and ```submaps_pose``` folder in the example data folder for the completed mesh and pose for each fruit.
 
 ----
 
