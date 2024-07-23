@@ -3,11 +3,11 @@ run_name: lab_strawberry
 # data path:
 deepsdf_dir: './deepsdf/models/strawberry_32' 
 
-data_dir: './data/igg_fruit/Strawberry'
+data_dir: './data/igg_fruit_example/Strawberry'
 
 fruit_id: none # if none, we will use the testset in split
 
-split: './data/igg_fruit/Strawberry/split.json'
+split: './data/igg_fruit_example/Strawberry/split.json'
 
 baseline_name: none # none means use our own method # select from CoRe, DeepSDF, CPD, PFSGD, SEFit
 
@@ -62,6 +62,7 @@ opt: # joint pose and shape optimization for the crops
 
 vis:
   wandb_log_on: true
+  log_on: true
   vis_on: true
   vis_pause_s: 0.0
   object_radius_max_m: 0.04

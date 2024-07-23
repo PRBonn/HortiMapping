@@ -20,7 +20,7 @@ class MeshExtractor(object):
         vertices = vertices.astype("float32")
         faces = faces.astype("int32")
         end = get_time()
-        print("Extract mesh takes %f seconds" % (end - start))
+        # print("Extract mesh takes %f seconds" % (end - start))
         return ForceKeyErrorDict(vertices=vertices, faces=faces)
 
     def complete_mesh(self, latent, transform, color):

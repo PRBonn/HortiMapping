@@ -76,7 +76,25 @@ You can then test the shape completion and pose estimation using the example dat
 python test_wild_completion.py -c ./configs/wild_pepper.yaml 
 ```
 
-You will see a visualizer showing the optimization process. You can then check the ```submaps_complete``` and ```submaps_pose``` folder in the example data folder for the completed mesh and pose for each fruit.
+You will see a visualizer showing the optimization process. You can then check the ```submaps_complete``` and ```submaps_pose``` folders in the example data folder for the completed mesh and pose for each fruit.
+
+### Fruit shape completion benchmark
+To run the code on the [ECCV fruit shape completion benchmark](https://www.ipb.uni-bonn.de/data/shape_completion/index.html), you can first download the data by:
+```
+sh scripts/download_fruit_shape_completion_dataset.sh
+```
+
+Then run:
+```
+python run_shape_completion_challenge.py
+```
+
+You can tune the parameters and switch the data split (`train`, `val` or `test`) in the config file `./configs/shape_completion_challenge_pepper.yaml`.
+For faster operation, you can turn off the visualization by setting `vis_on` to `false`.
+
+For more details of the dataset and challenge, please refer to [here](https://www.ipb.uni-bonn.de/wp-content/papercite-data/pdf/magistri2024arxiv.pdf).
+
+This script can be applied to other datasets, where the input is the masked RGBD images. 
 
 ----
 

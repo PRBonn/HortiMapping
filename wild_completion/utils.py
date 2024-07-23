@@ -105,7 +105,7 @@ def get_render_data(submap_id, id_imgs, depth_imgs, cam_poses, img_size, invK, c
         render_data["count"] += 1
         # print("FG:", sampled_pixels_fg.shape[0], " BG:", sampled_pixels_bg.shape[0])
     
-    print("Found render data for %i frames" %render_data["count"])
+    # print("Found render data for %i frames" %render_data["count"])
     return render_data
 
 
@@ -411,7 +411,7 @@ def clean_pcd(cur_pcd, cluster_dist_thre = 0.01, outlier_point_ratio = 0.02):
     cluster_counter = Counter(cur_cluster_labels)
     all_labels = cluster_counter.most_common()   # Returns all unique items and their counts
     mode_label = cluster_counter.most_common(1)[0][0]  # Returns the highest occurring item
-    print("Clusters:", all_labels, "-->", mode_label)
+    # print("Clusters:", all_labels, "-->", mode_label)
     main_cluster_indices = np.where(cur_cluster_labels==mode_label)[0].tolist()
     cur_pcd_clean = cur_pcd.select_by_index(main_cluster_indices)
     return cur_pcd_clean

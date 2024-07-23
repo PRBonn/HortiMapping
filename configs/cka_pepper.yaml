@@ -68,7 +68,9 @@ opt: # joint pose and shape optimization for the crops
 
 vis:
   wandb_log_on: true
+  log_on: true
   vis_on: true
+  vis_gt: false
   vis_pause_s: 0.1
   object_radius_max_m: 0.08
   mc_res_mm: 4.0

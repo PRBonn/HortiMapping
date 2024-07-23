@@ -59,6 +59,7 @@ opt: # joint pose and shape optimization for the crops
     rot_max_deg: 60
 
 vis:
+  log_on: true
   vis_on: true
   vis_pause_s: 0.05
   object_radius_max_m: 0.08

@@ -232,7 +232,7 @@ class OptVisualizer(StubVisualizer):
         self.vis.get_render_option().mesh_show_wireframe = False
         self.vis.get_render_option().mesh_shade_option = o3d.visualization.MeshShadeOption.Color
         print(100 * "*")
-        print(f"{w_name} initialized. Press [SPACE] to pause/start, [N] to skip, [V] to switch back to the default viewpoint, [M] to toggle the mesh, [F] to toggle the pose frame, [ESC] to exit.")
+        print(f"{w_name} initialized. Press [SPACE] to pause/start, [N] to skip, [V] to switch back to the default viewpoint, [M] to toggle the completed mesh, [F] to toggle the pose coordinate frame, [G] to toggle the ground truth mesh if available, [C] to toggle the mesh visualization in the canonical frame, [ESC / Q] to exit.")
 
     def _register_key_callback(self, keys: List, callback: Callable):
         for key in keys:

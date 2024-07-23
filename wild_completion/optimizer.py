@@ -22,9 +22,10 @@ class Optimizer(object):
         self.mesher = mesher
         self.vis = vis
         self.vis_pause_time = cfg['vis']['vis_pause_s']
+        self.log_on = cfg['vis']['log_on']
 
     # jointly optimize shape code and pose
-    def shape_pose_joint_opt(self, latent, T_ow_torch, render_data, points_w_torch, cube_radius, cur_color):
+    def shape_pose_joint_opt(self, latent, T_ow_torch, render_data, points_w_torch, cube_radius, cur_color, pose_known = False):
         
         # key parameters for the optimization
         iter_count_max = self.opt_cfg['converge']['max_iter']
@@ -50,7 +51,6 @@ class Optimizer(object):
         robust_iter = self.opt_cfg['robust_iter'] # begin to apply robust loss from this iteration (begin from 0)
         s_damp = float(self.opt_cfg['lm']['s_damp'])
         estimate_scale = self.opt_cfg['scale_on']
-        
 
         if estimate_scale:
             pose_dim = 7 # 7DOF (Sim3)
@@ -233,6 +233,10 @@ class Optimizer(object):
             # optimize
             delta_x = torch.mv(torch.inverse(H), b)
             delta_p = delta_x[:pose_dim] # pose part
+
+            if pose_known:
+                delta_p[:6] = 0
+            
             delta_c = delta_x[pose_dim:est_count] # code part
 
             if estimate_scale:
@@ -254,12 +258,12 @@ class Optimizer(object):
 
             cur_T_wo = inv(T_ow_torch.cpu().detach().numpy())
 
-            print("Current scale:", cur_scale.item())
-            print(i , ", Recon loss:", "{:.5}".format(loss_recon_l1), ", Depth render loss:", "{:.5}".format(loss_depth_l1), ", Mask render loss:", "{:.5}".format(loss_mask_l1))
-
             t6 = get_time()
 
-            print("Render time (s):", "{:.3}".format(t3-t1), ", Recon time (s):", "{:.3}".format(t5-t3), ", Optim time (s):", "{:.3}".format(t6-t5))
+            if self.log_on:
+                print("Current scale:", cur_scale.item())
+                print(i , ", Recon loss:", "{:.5}".format(loss_recon_l1), ", Depth render loss:", "{:.5}".format(loss_depth_l1), ", Mask render loss:", "{:.5}".format(loss_mask_l1))
+                print("Render time (s):", "{:.3}".format(t3-t1), ", Recon time (s):", "{:.3}".format(t5-t3), ", Optim time (s):", "{:.3}".format(t6-t5))
 
             if self.vis is not None:
                 cur_mesh = self.mesher.complete_mesh(latent, np.eye(4), cur_color) # here it's still in the object coordinate system
@@ -270,16 +274,21 @@ class Optimizer(object):
 
             # judge convergence
             if (torch.max(torch.abs(b)) < epsilon_g and i > 1):
-                print('**** Convergence in gradient  ****')
+                if self.log_on:
+                    print('**** Convergence in gradient  ****')
                 break
             if (torch.max(torch.abs(delta_c/(latent+1e-12))) < epsilon_c  and i > 1): 
-                print('**** Convergence in Shape Latent Code ****')
+                if self.log_on:
+                    print('**** Convergence in Shape Latent Code ****')
                 break
-            if (delta_tran < epsilon_t and delta_rot < epsilon_r and delta_scale < epsilon_s and i > 1): 
-                print('**** Convergence in Pose Parameters ****')
+                
+            if (not pose_known) and (delta_tran < epsilon_t and delta_rot < epsilon_r and delta_scale < epsilon_s and i > 1): 
+                if self.log_on:
+                    print('**** Convergence in Pose Parameters ****')
                 break
             if (i == iter_count_max-1): 
-                print('**** Convergence in Maximum Iteration Numbers ****')
+                if self.log_on:
+                    print('**** Convergence in Maximum Iteration Numbers ****')
 
             # TODO: add the rotation constraint, if strange rotation -> then reject this submap
 
@@ -393,7 +402,8 @@ class Optimizer(object):
 
             loss_recon_l1 = torch.mean(torch.abs(robust_res_recon)).item()
 
-            print(i , ", Recon:", "{:.5}".format(loss_recon_l1))
+            if self.log_on:
+                print(i , ", Recon:", "{:.5}".format(loss_recon_l1))
 
             cur_T_wo = inv(T_ow_torch.cpu().detach().numpy())
 
@@ -405,12 +415,15 @@ class Optimizer(object):
 
             # judge convergence
             if (torch.max(torch.abs(b)) < epsilon_g and i > 1):
-                print('**** Convergence in gradient  ****')
+                if self.log_on:
+                    print('**** Convergence in gradient  ****')
                 break
             if (torch.max(torch.abs(delta_c/(latent+1e-12))) < epsilon_c  and i > 1): 
-                print('**** Convergence in Shape Latent Code ****')
+                if self.log_on:
+                    print('**** Convergence in Shape Latent Code ****')
                 break
             if (i == iter_count_max-1): 
-                print('**** Convergence in Maximum Iteration Numbers ****')
+                if self.log_on:
+                    print('**** Convergence in Maximum Iteration Numbers ****')
 
         return latent, T_ow_torch, iter_count
