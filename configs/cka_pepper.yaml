@@ -38,6 +38,7 @@ opt: # joint pose and shape optimization for the crops
     n_pts: 2000      # the number of the point sampled from the object's mesh (before cleaning) # 2000
     cluster_dist_m: 0.01 # the distance for filtering isolated clusters (the noise) from the object # 0.01
     robust_th_m: 0.01 # robust kernel threshold # 0.005
+  render_on: true
   render:            # rendering loss related
     n_fg_pix: 200    # count of the sampled foreground pixels
     n_bg_pix: 200    # count of the sampled background pixels

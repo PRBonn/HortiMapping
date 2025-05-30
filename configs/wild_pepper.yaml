@@ -6,7 +6,7 @@ deepsdf_dir: './deepsdf/models/sweetpepper_32'
 data_dir: './data/BUP20_example_data'
 
 cam_info_path: './data/BUP20_example_data/cam_info.yaml'
-baseline_name: none 
+baseline_name: none # none means use our own method # select from CoRe, DeepSDF, CPD, PFSGD, SEFit
 
 # processing range
 begin_submap: 1
@@ -30,6 +30,7 @@ opt: # joint pose and shape optimization for the crops
     n_pts: 2000      # the number of the point sampled from the object's mesh (before cleaning)
     cluster_dist_m: 0.01 # the distance for filtering isolated clusters (the noise) from the object
     robust_th_m: 0.01 # robust kernel threshold
+  render_on: true
   render:            # rendering loss related
     n_fg_pix: 200    # count of the sampled foreground pixels
     n_bg_pix: 200    # count of the sampled background pixels

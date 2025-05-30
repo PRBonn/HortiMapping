@@ -23,6 +23,7 @@ class Optimizer(object):
         self.vis = vis
         self.vis_pause_time = cfg['vis']['vis_pause_s']
         self.log_on = cfg['vis']['log_on']
+        self.render_part_on = cfg['opt']['render_on']
 
     # jointly optimize shape code and pose
     def shape_pose_joint_opt(self, latent, T_ow_torch, render_data, points_w_torch, cube_radius, cur_color, pose_known = False):
@@ -74,13 +75,14 @@ class Optimizer(object):
 
         # get render data
         # only use part of the matched frames for rendering
-        render_frame_count = len(render_data["T_wc"])
-        sample_frame_ind = np.linspace(0, render_frame_count-1, min(max_render_frame,render_frame_count)).astype(np.int32)
-        render_T_wc_torch = render_data["T_wc"]
-        render_rays_fg = render_data["rays_fg"]
-        render_rays_bg = render_data["rays_bg"]
-        render_depth_fg = render_data["depth_fg"]
-        render_depth_bg = render_data["depth_bg"]
+        if self.render_part_on:
+            render_frame_count = len(render_data["T_wc"])
+            sample_frame_ind = np.linspace(0, render_frame_count-1, min(max_render_frame,render_frame_count)).astype(np.int32)
+            render_T_wc_torch = render_data["T_wc"]
+            render_rays_fg = render_data["rays_fg"]
+            render_rays_bg = render_data["rays_bg"]
+            render_depth_fg = render_data["depth_fg"]
+            render_depth_bg = render_data["depth_bg"]
 
         iter_count=0
         
@@ -91,74 +93,82 @@ class Optimizer(object):
             t1 = get_time()
 
             # time are mainly spent here
-
-            # -------------------------------------------------------------------------------------
-            # I. rendering term
-            res_render_depth = torch.empty(0,1,1, device=self.dev, dtype=self.dtype)
-            J_render_depth = torch.empty(0,1,est_count, device=self.dev, dtype=self.dtype)
-            res_render_mask = torch.empty(0,1,1, device=self.dev, dtype=self.dtype)
-            J_render_mask = torch.empty(0,1,est_count, device=self.dev, dtype=self.dtype)
-
-            for idx in sample_frame_ind: # for every image that we would conduct the rendering
-                T_wc_torch = render_T_wc_torch[idx]
-                T_oc_torch = T_ow_torch @ T_wc_torch
-                T_co_torch = torch.inverse(T_oc_torch)
-
-                depth_range = cube_radius * cur_scale
-                # would be calculate for each frame for each iteration
-                # be careful about the number here, also add to the config
-                depth_min, depth_max = T_co_torch[2, 3] - 1.0 * depth_range, T_co_torch[2, 3] + 0.8 * depth_range 
-                sampled_depth_along_rays = torch.linspace(depth_min, depth_max, num_depth_samples, device=self.dev, dtype=self.dtype)
-
-                ray_fgbg = torch.cat((render_rays_fg[idx], render_rays_bg[idx]), 0)
-                
-                # better to limit the loss for bg (we want the model to not shrink too small, better to be larger)
-                rend_result = compute_render_loss(self.decoder, latent, ray_fgbg, render_depth_fg[idx], 
-                    render_depth_bg[idx], T_oc_torch, sampled_depth_along_rays, estimate_scale, log_sdf_occ,
-                    occ_cutoff_m, depth_range, occlusion_aware) 
-
-                if rend_result is not None:
-                    cur_res_depth, cur_jac_depth_tow, cur_jac_depth_code, cur_res_mask, cur_jac_mask_tow, cur_jac_mask_code = rend_result
-                    # depth
-                    cur_J_depth = torch.cat([cur_jac_depth_tow, cur_jac_depth_code], dim=-1) # N, 1, 7+c 
-                    res_render_depth = torch.cat([res_render_depth, cur_res_depth], dim=0) 
-                    J_render_depth = torch.cat([J_render_depth, cur_J_depth], dim=0)
-                    # mask
-                    cur_J_mask = torch.cat([cur_jac_mask_tow, cur_jac_mask_code], dim=-1) # N, 1, 7+c 
-                    res_render_mask = torch.cat([res_render_mask, cur_res_mask], dim=0) 
-                    J_render_mask = torch.cat([J_render_mask, cur_J_mask], dim=0)
-                else:
-                    print("This frame is not valid")
-                    continue
-                
-            depth_obs_count = res_render_depth.shape[0] 
-            mask_obs_count = res_render_mask.shape[0]
-            J_render_depth_t = J_render_depth.transpose(1, 2)  # N, 7+c, 1 
-            J_render_mask_t = J_render_mask.transpose(1, 2)  # N, 7+c, 1 
             
-            if depth_obs_count == 0:
-                print("This submap is not valid")
-                break
+            if self.render_part_on:
+                # -------------------------------------------------------------------------------------
+                # I. rendering term
+                res_render_depth = torch.empty(0,1,1, device=self.dev, dtype=self.dtype)
+                J_render_depth = torch.empty(0,1,est_count, device=self.dev, dtype=self.dtype)
+                res_render_mask = torch.empty(0,1,1, device=self.dev, dtype=self.dtype)
+                J_render_mask = torch.empty(0,1,est_count, device=self.dev, dtype=self.dtype)
 
-            t2 = get_time()
+                for idx in sample_frame_ind: # for every image that we would conduct the rendering
+                    T_wc_torch = render_T_wc_torch[idx]
+                    T_oc_torch = T_ow_torch @ T_wc_torch
+                    T_co_torch = torch.inverse(T_oc_torch)
 
-            if i >= robust_iter:
-                robust_res_render_depth, robust_w = get_robust_res(res_render_depth, t_depth)
+                    depth_range = cube_radius * cur_scale
+                    # would be calculate for each frame for each iteration
+                    # be careful about the number here, also add to the config
+                    depth_min, depth_max = T_co_torch[2, 3] - 1.0 * depth_range, T_co_torch[2, 3] + 0.8 * depth_range 
+                    sampled_depth_along_rays = torch.linspace(depth_min, depth_max, num_depth_samples, device=self.dev, dtype=self.dtype)
+
+                    ray_fgbg = torch.cat((render_rays_fg[idx], render_rays_bg[idx]), 0)
+                    
+                    # better to limit the loss for bg (we want the model to not shrink too small, better to be larger)
+                    rend_result = compute_render_loss(self.decoder, latent, ray_fgbg, render_depth_fg[idx], 
+                        render_depth_bg[idx], T_oc_torch, sampled_depth_along_rays, estimate_scale, log_sdf_occ,
+                        occ_cutoff_m, depth_range, occlusion_aware) 
+
+                    if rend_result is not None:
+                        cur_res_depth, cur_jac_depth_tow, cur_jac_depth_code, cur_res_mask, cur_jac_mask_tow, cur_jac_mask_code = rend_result
+                        # depth
+                        cur_J_depth = torch.cat([cur_jac_depth_tow, cur_jac_depth_code], dim=-1) # N, 1, 7+c 
+                        res_render_depth = torch.cat([res_render_depth, cur_res_depth], dim=0) 
+                        J_render_depth = torch.cat([J_render_depth, cur_J_depth], dim=0)
+                        # mask
+                        cur_J_mask = torch.cat([cur_jac_mask_tow, cur_jac_mask_code], dim=-1) # N, 1, 7+c 
+                        res_render_mask = torch.cat([res_render_mask, cur_res_mask], dim=0) 
+                        J_render_mask = torch.cat([J_render_mask, cur_J_mask], dim=0)
+                    else:
+                        print("This frame is not valid")
+                        continue
+                    
+                depth_obs_count = res_render_depth.shape[0] 
+                mask_obs_count = res_render_mask.shape[0]
+                J_render_depth_t = J_render_depth.transpose(1, 2)  # N, 7+c, 1 
+                J_render_mask_t = J_render_mask.transpose(1, 2)  # N, 7+c, 1 
+                
+                if depth_obs_count == 0:
+                    print("This submap is not valid")
+                    break
+
+                t2 = get_time()
+
+                if i >= robust_iter:
+                    robust_res_render_depth, robust_w = get_robust_res(res_render_depth, t_depth)
+                else:
+                    robust_res_render_depth = res_render_depth
+                    robust_w = torch.ones_like(res_render_depth)
+
+                # better to visualize with wandb
+                H_render_depth = w_depth * (robust_w*torch.bmm(J_render_depth_t, J_render_depth)).sum(0).squeeze() / depth_obs_count
+                b_render_depth = -w_depth * (robust_w*torch.bmm(J_render_depth_t, res_render_depth)).sum(0).squeeze() / depth_obs_count
+                # print("H_render_depth:")
+                # print(H_render_depth)
+
+                # faster to be done in cpu ...
+                H_render_mask = w_mask * torch.bmm(J_render_mask_t, J_render_mask).sum(0).squeeze() / mask_obs_count
+                b_render_mask = -w_mask * torch.bmm(J_render_mask_t, res_render_mask).sum(0).squeeze() / mask_obs_count
+                # print("H_render_mask:")
+                # print(H_render_mask)
+            
             else:
-                robust_res_render_depth = res_render_depth
-                robust_w = torch.ones_like(res_render_depth)
+                H_render_depth = 0
+                b_render_depth = 0
+                H_render_mask = 0
+                b_render_mask = 0
 
-            # better to visualize with wandb
-            H_render_depth = w_depth * (robust_w*torch.bmm(J_render_depth_t, J_render_depth)).sum(0).squeeze() / depth_obs_count
-            b_render_depth = -w_depth * (robust_w*torch.bmm(J_render_depth_t, res_render_depth)).sum(0).squeeze() / depth_obs_count
-            # print("H_render_depth:")
-            # print(H_render_depth)
-
-            # faster to be done in cpu ...
-            H_render_mask = w_mask * torch.bmm(J_render_mask_t, J_render_mask).sum(0).squeeze() / mask_obs_count
-            b_render_mask = -w_mask * torch.bmm(J_render_mask_t, res_render_mask).sum(0).squeeze() / mask_obs_count
-            # print("H_render_mask:")
-            # print(H_render_mask)
 
             t3 = get_time()
                             
@@ -253,8 +263,12 @@ class Optimizer(object):
             delta_rot = torch.norm(rotation_matrix_to_axis_angle(delta_T[0:3,0:3]*cur_scale))*180.0/math.pi  # to degree
             
             loss_recon_l1 = torch.mean(torch.abs(robust_res_recon)).item()
-            loss_depth_l1 = torch.mean(torch.abs(robust_res_render_depth)).item()
-            loss_mask_l1 = torch.mean(torch.abs(res_render_mask)).item()
+            if self.render_part_on:
+                loss_depth_l1 = torch.mean(torch.abs(robust_res_render_depth)).item()
+                loss_mask_l1 = torch.mean(torch.abs(res_render_mask)).item()
+            else:
+                loss_depth_l1 = 0.0
+                loss_mask_l1 = 0.0
 
             cur_T_wo = inv(T_ow_torch.cpu().detach().numpy())
 

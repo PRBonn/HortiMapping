@@ -64,6 +64,7 @@ def main(config):
 
     if cfg['baseline_name'] == 'DeepSDF':
         deepsdf_baseline = True
+        cfg['opt']['render_on'] = False
     else:
         deepsdf_baseline = False
 
@@ -134,6 +135,7 @@ def main(config):
             print("Image size:", img_size)  #(H, W)
 
         map_pcd = cur_fruit_data['rgbd_pcd'] # in open3d
+
         min_bound = -np.ones(3)*object_radius_max_m*1.5
         bbox = o3d.geometry.AxisAlignedBoundingBox(min_bound, -min_bound)
         map_pcd = map_pcd.crop(bbox)
@@ -143,51 +145,54 @@ def main(config):
             print("Point count of the RGBD point cloud:", original_point_count)
         down_point_count=cfg['opt']['recon']['n_pts']
         map_pcd = map_pcd.random_down_sample(sampling_ratio=min(down_point_count/original_point_count, 1.0))
-        map_pcd = clean_pcd(map_pcd, cfg['opt']['recon']['cluster_dist_m'])
+        map_pcd = clean_pcd(map_pcd, cfg['opt']['recon']['cluster_dist_m']) # 0.01
         bbox = map_pcd.get_axis_aligned_bounding_box()
         center = bbox.get_center()
 
-        submap_id_imgs = {}
-        depth_imgs = {}
-        rgb_imgs = {}
-        cam_poses = {} # T_wc
+        render_data = None
+        
+        if cfg['opt']['render_on']:
+            submap_id_imgs = {}
+            depth_imgs = {}
+            rgb_imgs = {}
+            cam_poses = {} # T_wc
 
-        frame_count = 0
-        for idx in tqdm(sample_frame_ids): # for each frame
-            
-            frame_count += 1
-            cur_fruit_rgbd_frame = cur_fruit_rgbd_frames[idx]
+            frame_count = 0
+            for idx in tqdm(sample_frame_ids): # for each frame
+                
+                frame_count += 1
+                cur_fruit_rgbd_frame = cur_fruit_rgbd_frames[idx]
 
-            img_id_str = cur_fruit_rgbd_frame['fname']
-            img_id = int(img_id_str)
-            # print("Frame:", img_id)
+                img_id_str = cur_fruit_rgbd_frame['fname']
+                img_id = int(img_id_str)
+                # print("Frame:", img_id)
 
-            submap_id_imgs[img_id_str]=cur_fruit_rgbd_frame['mask'] # 0 or 1
-            depth_imgs[img_id_str]=cur_fruit_rgbd_frame['depth'] / depth_scale  # unit: m
-            rgb_imgs[img_id_str]=cur_fruit_rgbd_frame['rgb'] # 0-255
-            cam_poses[img_id_str]=cur_fruit_rgbd_frame['pose'] # current camera extrinsic
+                submap_id_imgs[img_id_str]=cur_fruit_rgbd_frame['mask'] # 0 or 1
+                depth_imgs[img_id_str]=cur_fruit_rgbd_frame['depth'] / depth_scale  # unit: m
+                rgb_imgs[img_id_str]=cur_fruit_rgbd_frame['rgb'] # 0-255
+                cam_poses[img_id_str]=cur_fruit_rgbd_frame['pose'] # current camera extrinsic
+        
+            render_data = get_render_data(cur_submap_id, submap_id_imgs, depth_imgs, cam_poses, img_size, invK, cfg, max_bbx_size=1000)
 
-        render_data = get_render_data(cur_submap_id, submap_id_imgs, depth_imgs, cam_poses, img_size, invK, cfg, max_bbx_size=1000)
-
-        # show one of the matched frames, for visualization only
-        if cfg['vis']['vis_on']:
-            mid_idx = int(render_data["count"]/2)
-            frame_id = render_data["frame_id"][mid_idx]
-            cur_pix_fg = render_data["pix_fg"][mid_idx]
-            cur_pix_bg = render_data["pix_bg"][mid_idx]
-            mask_img = submap_id_imgs[frame_id]   
-            cur_fruit_mask = (mask_img==cur_submap_id)
-            rgb_img = rgb_imgs[frame_id].astype(float)
-            depth_img = depth_imgs[frame_id]
-            rgb_img[~cur_fruit_mask] *= 0.4 # for visualization only (highlight masked part)
-            rgb_img[depth_img==0] *= 0.7 # for visualization only (highlight the part with valid depth)
-            # visualize the fg and bg samples
-            if cfg['vis']['show_pix_sample']:
-                rgb_img[cur_pix_fg[:,1], cur_pix_fg[:,0]] = np.array([0,0,255]) #fg samples
-                rgb_img[cur_pix_bg[:,1], cur_pix_bg[:,0]] = np.array([255,0,0]) #bg samples 
-            rgb_img = rgb_img.astype(np.uint8)
-            rgb_img_show = Image.fromarray(rgb_img)
-            rgb_img_show.show()
+            # show one of the matched frames, for visualization only
+            if cfg['vis']['vis_on']:
+                mid_idx = int(render_data["count"]/2)
+                frame_id = render_data["frame_id"][mid_idx]
+                cur_pix_fg = render_data["pix_fg"][mid_idx]
+                cur_pix_bg = render_data["pix_bg"][mid_idx]
+                mask_img = submap_id_imgs[frame_id]   
+                cur_fruit_mask = (mask_img==cur_submap_id)
+                rgb_img = rgb_imgs[frame_id].astype(float)
+                depth_img = depth_imgs[frame_id]
+                rgb_img[~cur_fruit_mask] *= 0.4 # for visualization only (highlight masked part)
+                rgb_img[depth_img==0] *= 0.7 # for visualization only (highlight the part with valid depth)
+                # visualize the fg and bg samples
+                if cfg['vis']['show_pix_sample']:
+                    rgb_img[cur_pix_fg[:,1], cur_pix_fg[:,0]] = np.array([0,0,255]) #fg samples
+                    rgb_img[cur_pix_bg[:,1], cur_pix_bg[:,0]] = np.array([255,0,0]) #bg samples 
+                rgb_img = rgb_img.astype(np.uint8)
+                rgb_img_show = Image.fromarray(rgb_img)
+                rgb_img_show.show()
         
         if cfg['vis']['vis_on']:
             vis.add_scan(map_pcd)
@@ -200,13 +205,14 @@ def main(config):
 
         mean_color = np.mean(np.array(map_pcd.colors), axis=0) # use avaerge color of the point cloud
         cur_color = color_table[0] # use random color
+        mean_color = cur_color
 
         cur_pcd_w = copy.deepcopy(map_pcd)
         points_w_torch = torch.tensor(np.array(cur_pcd_w.points), device=dev, dtype=dtype)
 
         T_wo_torch = torch.eye(4, device=dev, dtype=dtype)
         # we would anyway give a translation initial guess according to the object bbx center
-        # T_wo_torch[:3,3] = torch.tensor(center, device=dev, dtype=dtype) 
+        T_wo_torch[:3,3] = torch.tensor(center, device=dev, dtype=dtype) 
         T_ow_torch = torch.inverse(T_wo_torch)
             
         latent = init_latent.clone().detach()
@@ -215,7 +221,7 @@ def main(config):
         if deepsdf_baseline:
             latent, _, iter_count = opt.shape_opt_deepsdf(latent, T_ow_torch, points_w_torch, mean_color)
         else: # ours
-            latent, T_ow_torch, iter_count = opt.shape_pose_joint_opt(latent, T_ow_torch, render_data, points_w_torch, object_radius_max_m, mean_color, pose_known=True)
+            latent, T_ow_torch, iter_count = opt.shape_pose_joint_opt(latent, T_ow_torch, render_data, points_w_torch, object_radius_max_m, mean_color, pose_known=cfg["pose_known"])
         t1 = get_time()
         t_array.append(t1-t0)
         iter_array.append(iter_count)

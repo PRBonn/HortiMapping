@@ -59,7 +59,7 @@ cd HortiMapping
 
 ### Panoptic mapping
 
-For the multi-resolution panoptic mapping part, we use our previous work [Voxfield Panmap](https://github.com/VIS4ROB-lab/voxfield-panmap).
+For the multi-resolution panoptic mapping part, we use our previous work [Voxfield Panmap](https://github.com/VIS4ROB-lab/voxfield-panmap), which is built based on [Panmap](https://github.com/ethz-asl/panoptic_mapping).
 
 ### Fruit shape completion and pose estimation
 
@@ -78,6 +78,8 @@ python test_wild_completion.py -c ./configs/wild_pepper.yaml
 
 You will see a visualizer showing the optimization process. You can then check the ```submaps_complete``` and ```submaps_pose``` folders in the example data folder for the completed mesh and pose for each fruit.
 
+Note that you can disable the rendering loss by setting `render_on` to `false` in the config file and you may also disable the fruit pose optimization by using the DeepSDF baseline (set `baseline_name` to `DeepSDF`). For the visualization, please press `SPACE` to proceed or pause. If you do not want to visualize the optimization process, you can also set `vis_on` to `false`.
+
 ### Fruit shape completion benchmark
 To run the code on the [ECCV fruit shape completion benchmark](https://www.ipb.uni-bonn.de/data/shape_completion/index.html), you can first download the data by:
 ```
@@ -92,7 +94,7 @@ python run_shape_completion_challenge.py
 You can tune the parameters and switch the data split (`train`, `val` or `test`) in the config file `./configs/shape_completion_challenge_pepper.yaml`.
 For faster operation, you can turn off the visualization by setting `vis_on` to `false`.
 
-For more details of the dataset and challenge, please refer to [here](https://www.ipb.uni-bonn.de/wp-content/papercite-data/pdf/magistri2024arxiv.pdf).
+For more details of the dataset and challenge, please refer to [our dataset paper](https://www.ipb.uni-bonn.de/wp-content/papercite-data/pdf/magistri2025icra.pdf).
 
 This script can be applied to other datasets, where the input is the masked RGBD images. 
 
@@ -108,6 +110,20 @@ If you use the repository for any academic work, please cite our paper.
   year={2023}
 }
 ```
+
+## Contact
+If you have any questions, please contact:
+
+- Yue Pan {[yue.pan@igg.uni-bonn.de]()}
+
+
+## Related Projects
+
+You may check the following papers which apply our methods for mapping, manipulation, and harvesting in the ochard or greenhouse.
+
+[Improving Robotic Fruit Harvesting Within Cluttered Environments Through 3D Shape Completion (RAL 24)](https://www.ipb.uni-bonn.de/wp-content/papercite-data/pdf/magistri2024ral.pdf)
+
+[Safe Leaf Manipulation for Accurate Shape and Pose Estimation of Occluded Fruits (ICRA 25)](https://github.com/ShaoxiongYao/SafeLeafManip/)
 
 
 

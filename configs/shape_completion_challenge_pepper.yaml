@@ -5,13 +5,16 @@ deepsdf_dir: './deepsdf/models/sweetpepper_32'
 
 data_dir: './data/shape_completion_challenge'
 
-split: 'test' # select from train, val and test
+split: 'val' # select from train, val and test
 
 skip_lab_data: false
 
+# pose_known: true
+pose_known: false
+
 baseline_name: none # none means use our own method # select from CoRe, DeepSDF, CPD, PFSGD, SEFit
 
-frame_per_fruit: 5
+frame_per_fruit: 10
 
 device: cuda
 
@@ -21,7 +24,7 @@ opt: # joint pose and shape optimization for the crops
     lm_on: true      # levenberg-marquardt optimization instead of gauss-newton
     lm_eye: false    # use identity damping matrix or not
     lm_lambda_0: 0.1 # lm initial damping factor lambda, the larger, more tend to be stable but converging slowly
-    s_damp: 5e-3     # additional damping for the scale estimation (1e-3), the larger, more tend to not change the scale, 5e-3 (1e-3 used)
+    s_damp: 1e-3     # additional damping for the scale estimation (1e-3), the larger, more tend to not change the scale, 5e-3 (1e-3 used)
   pose_init:         # pose initial guess
     rot_on: false     
     scale_on: false
@@ -29,13 +32,14 @@ opt: # joint pose and shape optimization for the crops
     n_pts: 2000      # the number of the point sampled from the object's mesh (before cleaning)
     cluster_dist_m: 0.01 # the distance for filtering isolated clusters (the noise) from the object
     robust_th_m: 0.005 # robust kernel threshold
+  render_on: true
   render:            # rendering loss related
     n_fg_pix: 200    # count of the sampled foreground pixels
     n_bg_pix: 100    # count of the sampled background pixels
     n_bg_pad: 30     # padding of the background bounding box from the foreground bounding box on each side
-    n_frame: 5      # max count of the image frame used for calculating the rendering loss
-    n_sample_on_ray: 20 # count of the sampled points on each rendering ray, 20
-    log_sdf_occ: false # use the logistic function for sdf to occ. prob. convertion (or just a linear convertion)
+    n_frame: 10      # max count of the image frame used for calculating the rendering loss
+    n_sample_on_ray: 30 # count of the sampled points on each rendering ray, 20
+    log_sdf_occ: true # use the logistic function for sdf to occ. prob. convertion (or just a linear convertion)
     occ_cutoff_m: 0.005  # cut-off threshold for converting between the sdf and occupancy probability 
     occlusion_on: false  # occlusion aware rendering loss (do not take the potential occludded area in to account)
     robust_th_m: 0.02 # robust kernel threshold
@@ -43,7 +47,7 @@ opt: # joint pose and shape optimization for the crops
     w_recon: 0.01    # weight for the deepsdf reconstruction loss # 1.0
     w_depth: 5e-2 # 5e-2   # weight for the depth rendering loss
     w_mask: 1e-3 # 5e-4      # weight for the mask rendering loss
-    w_codereg: 1e-3 # 1e-4 larger would cause the pose more stable, but smaller would lead to more variance on the shape
+    w_codereg: 1e-4 # 1e-4 larger would cause the pose more stable, but smaller would lead to more variance on the shape
   converge:
     max_iter: 20    # max iteration number 
     epsilon_g: 1e-5 # convergence tolerance for gradient
@@ -57,9 +61,9 @@ vis:
   wandb_log_on: false
   log_on: false
   vis_on: true
-  vis_pause_s: 0.005
+  vis_pause_s: 0.05
   object_radius_max_m: 0.08
-  mc_res_mm: 4.0
+  mc_res_mm: 2.0
   render_view: false
   show_pix_sample: true
 
